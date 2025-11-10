@@ -1,0 +1,1900 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GAME RSVP</title>
+    <!-- Carrega Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Carrega fonte cursiva para a Nota -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ==== CSS ORIGINAL DO USUÁRIO (BASE) ==== */
+        #reader-box {
+            color: #fff;
+            font-size: 52px;
+            font-family: monospace;
+            text-align: left;
+            z-index: 99999;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            display: none; 
+        }
+        #reading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000000; 
+            z-index: 9998;
+            display: none; 
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-family: monospace;
+        }
+        .slot-item {
+            width: 70px; 
+            height: 50px;
+            line-height: 50px;
+            text-align: center;
+            background: #222;
+            color: #fff;
+            font-size: 30px; 
+            font-weight: bold;
+            margin: 0 5px;
+            border: 3px solid #ff6b6b; 
+            border-radius: 5px;
+        }
+        .custom-button {
+            background-color: #008080; 
+            color: white;
+            border: 1px solid #008080;
+            padding: 8px 18px;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 8px;
+            margin: 0 5px;
+            transition: background 0.2s;
+        }
+        .custom-button:hover {
+            background-color: #00cccc;
+        }
+        .custom-button:disabled {
+            background-color: #555;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        
+        #quiz-modal {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 100001; 
+            display: none;
+            flex-direction: column;
+            background-color: #1f2937; 
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.5);
+            width: 80vw; 
+            max-width: 800px; 
+        }
+        
+        .button-quiz { 
+            background-color: #4B5563; 
+            border-color: #4B5563;
+            width: 100%; 
+            white-space: normal; 
+            line-height: 1.4; 
+            text-align: left; 
+            padding: 12px 18px; 
+        }
+        .button-quiz-correct {
+             background-color: #059669; 
+             border-color: #059669;
+        }
+        .button-quiz-incorrect {
+            background-color: #DC2626; 
+            border-color: #DC2626;
+        }
+
+
+        #quiz-essay-input { 
+            background-color: #374151; 
+            color: white;
+            border-radius: 5px;
+            border: 1px solid #4b5563; 
+            width: 100%;
+            height: 150px;
+            padding: 10px;
+            resize: vertical;
+            box-sizing: border-box; 
+            font-family: sans-serif; 
+        }
+        
+        /* ==== NOVOS ESTILOS (PARA NOVOS ELEMENTOS) ==== */
+        body {
+            background-color: #111827; 
+            color: #D1D5DB; 
+            font-family: sans-serif;
+            padding: 20px;
+            margin: 0;
+            overflow: hidden; 
+        }
+        
+        #load-session-prompt {
+            display: none; 
+        }
+
+        #countdown-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 100001;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            font-size: 8rem;
+            color: #008080; 
+            font-weight: bold;
+            font-family: monospace;
+        }
+        
+        /* Estilos do Léxico (Posição/Popup) */
+        #lexicon-box {
+            position: relative; 
+            display: flex;
+            height: 30px; 
+            padding: 5px 10px;
+            margin-right: 10px;
+            background: #1f2937;
+            border: 1px solid #4b5563;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        #lexicon-box:hover {
+            background: #374151;
+        }
+        #lexicon-box h3 {
+            font-size: 14px;
+            font-weight: bold;
+            color: #008080; 
+            margin: 0;
+            line-height: 20px; 
+            font-family: sans-serif;
+            user-select: none;
+        }
+        #lexicon-list {
+            display: none; 
+            position: absolute; 
+            width: 250px; 
+            height: 40vh; 
+            z-index: 100003; 
+            background: #1f2937;
+            border: 1px solid #4b5563;
+            border-radius: 8px;
+            padding: 10px;
+            box-shadow: 0 -5px 15px rgba(0,0,0,0.3);
+            overflow-y: auto;
+            font-size: 14px;
+            font-family: sans-serif;
+            color: #D1D5DB;
+            cursor: default;
+        }
+        #lexicon-list p {
+            margin-bottom: 10px;
+            border-bottom: 1px solid #374151; 
+            padding-bottom: 5px;
+        }
+        #lexicon-list strong {
+            color: #00cccc; 
+            display: block; 
+        }
+        
+        .button-save-game {
+            background-color: #2563EB; 
+            border-color: #2563EB;
+        }
+        .button-save-game:hover {
+            background-color: #3B82F6; 
+        }
+        
+        #save-feedback {
+            position: absolute;
+            bottom: 8rem;
+            color: #34D399; 
+            font-weight: bold;
+            display: none;
+            z-index: 100;
+            background: rgba(0,0,0,0.5);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-family: sans-serif;
+        }
+
+        /* Estilos do BOLETIM (Nota) */
+        #nota-box {
+            position: relative; 
+            display: flex;
+            align-items: center; 
+            z-index: 51; 
+            background: #1f2937;
+            border: 1px solid #4b5563;
+            border-radius: 8px;
+            padding: 5px 10px;
+            cursor: pointer;
+            transition: background 0.2s;
+            position: absolute; 
+            top: 3.5rem; 
+            right: 1rem; 
+            font-size: 18px; 
+            color: white;
+        }
+        #nota-box:hover {
+            background: #374151;
+        }
+        #nota-box-label {
+             font-size: 18px; 
+        }
+        #nota-display {
+            font-family: 'Caveat', cursive;
+            font-weight: 700;
+            transform: rotate(-8deg); 
+            display: inline-block;
+            transition: all 0.3s ease;
+            margin-left: 5px;
+            padding-bottom: 5px; 
+        }
+        #nota-list {
+            display: none; 
+            position: absolute; 
+            width: 240px; 
+            height: 40vh; 
+            z-index: 100003; 
+            background: #1f2937;
+            border: 1px solid #4b5563;
+            border-radius: 8px;
+            padding: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            overflow-y: auto;
+            font-size: 14px;
+            font-family: sans-serif;
+            color: #D1D5DB;
+            cursor: default;
+        }
+        .round-item {
+            margin-bottom: 10px;
+            border-bottom: 1px solid #374151;
+            padding-bottom: 5px;
+            font-size: 14px;
+        }
+        .round-title {
+            font-weight: bold;
+            color: #00cccc;
+            display: block;
+        }
+        .round-note-dynamic {
+            font-family: 'Caveat', cursive;
+            transform: rotate(-8deg);
+            display: inline-block;
+            padding-bottom: 2px;
+        }
+        
+        /* Pontuação Total e Bloco de Assinatura */
+        #signature-block {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            margin-right: 10px; 
+        }
+        #pontuacao-total-display {
+            font-size: 0.875rem; 
+            color: #9CA3AF; 
+            font-weight: bold;
+        }
+        #pontuacao-total-display span {
+            color: #FBBF24; 
+            font-size: 1rem;
+        }
+        #signature-container {
+             font-size: 0.875rem; 
+             color: #6B7280;
+        }
+
+
+        /* Estilos do Modal de Quiz */
+        #quiz-question-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #34D399; 
+            margin-bottom: 16px;
+        }
+        #quiz-question-text {
+            font-size: 18px;
+            margin-bottom: 24px;
+            font-family: sans-serif;
+        }
+        #quiz-question-text ul {
+            list-style-type: disc;
+            margin-left: 20px;
+            font-size: 16px;
+            font-family: sans-serif;
+        }
+        #quiz-question-text li {
+            margin-bottom: 5px;
+        }
+        #quiz-options-container {
+            display: flex;
+            flex-direction: column; 
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        #quiz-essay-container {
+            display: none;
+            margin-bottom: 16px;
+        }
+        #quiz-feedback {
+            font-size: 16px;
+            margin-top: 16px;
+            min-height: 1.5em;
+            font-family: sans-serif;
+        }
+        #quiz-next-button {
+            display: none;
+            margin-top: 16px;
+            background-color: #4B5563; 
+            border-color: #4B5563;
+        }
+        #quiz-essay-submit { 
+            margin-top: 10px;
+            background-color: #2563EB; 
+            border-color: #2563EB;
+        }
+
+        .button-review {
+            background-color: #D97706; 
+            border-color: #D97706;
+        }
+        .button-review:hover {
+            background-color: #F59E0B; 
+        }
+        .button-load-continue {
+            background-color: #10B981;
+        }
+        .button-load-new {
+            background-color: #EF4444;
+        }
+        .button-instructions {
+            background-color: #6B7280; 
+            border-color: #6B7280;
+        }
+        .button-instructions:hover {
+             background-color: #4B5563; 
+        }
+        .button-download {
+            background-color: #0E7490; 
+            border-color: #0E7490;
+        }
+        .button-download:hover {
+             background-color: #0891B2; 
+        }
+
+
+        /* Classes de Feedback de Resposta */
+        .feedback-correct {
+            color: #34D399; 
+        }
+        .feedback-incorrect {
+            color: #F87171; 
+        }
+        .feedback-critical {
+            color: #FBBF24; 
+            font-weight: bold;
+        }
+
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-200 font-sans p-8">
+
+    <!-- ==== TELA DE ENTRADA (PRÉ-LEITURA) - Usa Tailwind ==== -->
+    <div id="input-screen" class="max-w-2xl mx-auto">
+        <header class="text-center mb-6">
+            <h1 class="text-3xl font-bold text-green-400 mb-2">GAME RSVP</h1>
+            <p class="text-lg text-gray-400">Cole seu texto, leia rápido e teste seu conhecimento.</p>
+        </header>
+
+        <main class="bg-gray-800 p-6 rounded-lg shadow-xl">
+            <!-- Prompt de Carregar Sessão -->
+            <div id="load-session-prompt" class="text-center mb-4 p-4 bg-gray-700 rounded-md">
+                <p class="mb-3">Encontramos uma sessão salva. Deseja continuar?</p>
+                <button id="continue-session-button" class="custom-button button-load-continue">Continuar de onde parei</button>
+                <button id="new-session-button" class="custom-button button-load-new">Começar de novo</button>
+            </div>
+        
+            <!-- Área de Texto -->
+            <textarea id="text-input" class="w-full h-72 bg-gray-700 text-gray-200 p-4 rounded-md border border-gray-600 focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="Cole seu texto aqui ou carregue um arquivo .txt..."></textarea>
+            
+            <!-- Controles de Upload e Início -->
+            <div class="flex flex-col md:flex-row justify-between items-center mt-4">
+                <div class="w-full md:w-auto mb-4 md:mb-0">
+                    <label for="file-upload" class="custom-button bg-blue-600 hover:bg-blue-500 cursor-pointer block text-center">
+                        Carregar .txt
+                    </label>
+                    <input id="file-upload" type="file" class="hidden" accept=".txt">
+                    <span id="file-name-display" class="text-sm text-gray-500 mt-1 block">Nenhum arquivo.</span>
+                    <p class="text-xs text-gray-500 mt-2">Arquivos PDF não são suportados. Por favor, copie e cole o texto do PDF.</p>
+                </div>
+                
+                <a 
+                    href="https://sites.google.com/usf.edu.br/gamersvp" 
+                    target="_blank" 
+                    id="instructions-button" 
+                    role="button"
+                    class="btn-secondary px-4 py-2.5 rounded-lg font-semibold text-sm shadow-md flex items-center hover:bg-teal-50 hover:border-teal-300 border border-transparent"
+                >
+    
+                Instruções (Tutorial)
+                </a>
+
+                <!-- Botão Iniciar -->
+                <button id="start-button" class="w-full md:w-auto custom-button bg-green-600 hover:bg-green-500 text-xl px-8 py-3">
+                    Iniciar Leitura
+                </button>
+            </div>
+        </main>
+    </div>
+
+    <!-- ==== TELA DE LEITURA (SOBREPOSIÇÃO) ==== -->
+    <div id="reading-overlay">
+        <!-- O conteúdo (readerBox, botões, etc.) será criado por JS -->
+    </div>
+    
+    <!-- Overlay de Contagem Regressiva -->
+    <div id="countdown-overlay">
+        <span id="countdown-text">3</span>
+    </div>
+
+    <!-- ==== MODAL DO QUIZ (Estático, com IDs) ==== -->
+    <div id="quiz-modal">
+        <h2 id="quiz-question-title">Quiz Rápido!</h2>
+        <p id="quiz-question-text">Carregando pergunta...</p>
+
+        <!-- Opções (V/F ou Múltipla Escolha) -->
+        <div id="quiz-options-container">
+            <!-- Botões de resposta serão inseridos aqui -->
+        </div>
+
+        <!-- Resposta Dissertativa -->
+        <div id="quiz-essay-container">
+            <textarea id="quiz-essay-input" placeholder="Digite sua resposta..."></textarea>
+            <button id="quiz-essay-submit" class="custom-button">Enviar Resposta</button>
+        </div>
+
+        <!-- Feedback da Resposta -->
+        <div id="quiz-feedback"></div>
+
+        <!-- Botão Próximo -->
+        <button id="quiz-next-button" class="custom-button">Próxima Pergunta</button>
+    </div>
+
+
+    <!-- ==== JAVASCRIPT ==== -->
+    <script type="module">
+    // --- Configurações de Cor e Jogo (Originais) ---
+    var ORP_COLOR = '#ff6b6b';
+    var TEAL_COLOR = '#008080';
+    var ORP_GLOW = '0 0 2px ' + ORP_COLOR;
+    var SLOT_OPTIONS = ['✅', '📋', '✍️']; 
+
+    // --- Variáveis Globais de Estado (Originais + Novas) ---
+    var wpm = 200; 
+    var wpmAtStreakStart = 200; 
+    var intervalId;
+    var i = 0; 
+    var isPaused = true;
+    var contextCount = 10; 
+    var version = "K21.2-Gemini"; // (MODIFICADO) v21.2 Hotfix Z-Index
+    var signature = "2025.jrd.gem"; 
+    var title = "GAME RSVP"; 
+    var words = [];
+    
+    // --- Variáveis de UI (Serão definidas em initReadingUI) ---
+    var readerBox;
+    var playPauseButton;
+    var speedDisplay;
+    var notaBox, notaDisplay, notaList; 
+    var pontuacaoTotalDisplay; 
+    var slotContainer;
+    var lexiconBox, lexiconList, saveFeedback; 
+    var wpmInput; 
+
+    // --- Variáveis de UI (Estáticas, definidas em init) ---
+    var inputScreen;
+    var countdownOverlay, countdownText;
+    var quizModal, quizQuestionTitle, quizQuestionText, quizOptionsContainer, quizEssayContainer, quizEssayInput, quizEssaySubmit, quizFeedback, quizNextButton;
+
+    // --- Estado do Quiz (Original + Novo) ---
+    var MIN_READ_WORDS = 20;
+    var questions = [];
+    var currentQuestionIndex = 0;
+    var correctAnswers = 0;
+    var sequentialCorrect = 0; 
+    var sequentialCorrectMax = 0; 
+    var totalResponseTime = 0;
+    var currentNota = 0; 
+    var pontuacaoTotal = 0; 
+    var currentRoundPontuacao = 0; 
+    var roundHistory = []; 
+    var quizStartTime = 0;
+    var slotsState = [0, 0, 0];
+    var slotIntervals = [null, null, null];
+    var activeSlot = 0;
+    var readContextText = ""; 
+    var userAnswers = []; 
+    var lastQuizIndex = 0; 
+    var currentSegmentStartIndex = 0; 
+    var wordsReadThisStreak = 0; 
+    var essayCriticalHits = 0; 
+    var fullLexicon = []; 
+    
+    // Configuração da API
+    const apiKey = ""; 
+    const gen2apiUrl = `/api/geminigemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+
+    // --- (SCHEMAS DA API) ---
+    const QUESTIONS_SCHEMA = {
+        type: "ARRAY",
+        description: "Uma lista de perguntas de quiz em Português (quantidade variável).",
+        items: {
+            type: "OBJECT",
+            properties: {
+                "type": { "type": "STRING", "description": "Tipo de pergunta: 'tf' (Verdadeiro/Falso), 'mc' (Múltipla Escolha), ou 'essay' (Dissertativa)." },
+                "q": { "type": "STRING", "description": "O texto da pergunta." },
+                "options": { "type": "ARRAY", "items": { "type": "STRING" }, "description": "Array de opções (para 'mc') ou ['Verdadeiro', 'Falso'] (para 'tf')." },
+                "a": { "type": "STRING", "description": "A resposta correta." }
+            },
+            required: ["type", "q", "a"]
+        }
+    };
+    const GRADING_SCHEMA = {
+        type: "OBJECT",
+        description: "Avaliação da resposta dissertativa do usuário em Português.",
+        properties: {
+            "score": { "type": "NUMBER", "description": "Uma nota de 0.0 a 1.0 avaliando a precisão e completude da resposta." },
+            "feedback": { "type": "STRING", "description": "Um breve feedback (1-2 frases) explicando a nota e o que faltou ou estava correto." }
+        },
+        required: ["score", "feedback"]
+    };
+    const SUMMARY_SCHEMA = {
+        type: "OBJECT",
+        description: "Avaliação da performance geral do usuário no quiz, em Português.",
+        properties: {
+            "strengths": { "type": "STRING", "description": "Uma lista sucinta (2-3 tópicos) dos pontos fortes (tópicos que o usuário acertou/entendeu). Use '*' como marcador." },
+            "weaknesses": { "type": "STRING", "description": "Uma lista sucinta (2-3 tópicos) dos pontos fracos (tópicos que o usuário errou). Use '*' como marcador." }
+        },
+        required: ["strengths", "weaknesses"]
+    };
+    const LEXICON_SCHEMA = {
+        type: "OBJECT",
+        description: "Lista de termos chave (máx 10) e suas definições concisas (1-2 frases) com base no texto, em Português.",
+        properties: {
+            "terms": {
+                type: "ARRAY",
+                items: {
+                    type: "OBJECT",
+                    properties: {
+                        "term": { "type": "STRING", "description": "O termo ou conceito chave." },
+                        "definition": { "type": "STRING", "description": "Uma definição concisa (1-2 frases) baseada no contexto do texto." }
+                    },
+                    required: ["term", "definition"]
+                }
+            }
+        },
+        required: ["terms"]
+    };
+
+    // --- FUNÇÕES DE LEITURA E NAVEGAÇÃO (Originais Corrigidas) ---
+
+    var getORPIndex = function (wordLength) {
+        if (wordLength <= 1) return 0;
+        if (wordLength <= 5) return 1;
+        if (wordLength <= 9) return 2;
+        if (wordLength <= 13) return 3;
+        return 4;
+    };
+    
+    var renderRSVPWord = function () {
+        var word = words[i];
+        if (!word) return; 
+        var orpIndex = getORPIndex(word.length);
+        var prefix = word.substring(0, orpIndex);
+        var orpLetter = word.substring(orpIndex, orpIndex + 1);
+        var suffix = word.substring(orpIndex + 1);
+        var prefixWidth = orpIndex;
+
+        readerBox.style.transform = 'none';
+        readerBox.style.textAlign = 'left';
+        readerBox.style.marginLeft = '-' + (prefixWidth) + 'ch'; 
+        readerBox.style.lineHeight = '1.0';
+        readerBox.style.fontSize = '52px';
+        readerBox.style.fontFamily = 'monospace';
+        readerBox.innerHTML = '<span>' + prefix + '</span><span style="color:' + ORP_COLOR + ';font-weight:bold;text-shadow: ' + ORP_GLOW + ';">' + orpLetter + '</span><span>' + suffix + '</span>';
+    };
+
+    var showContext = function () {
+        var start = Math.max(0, i - contextCount);
+        var end = Math.min(words.length, i + contextCount + 1);
+        var contextHTML = '';
+        var baseFontSize = 35;
+        var wordsPerStep = 1;
+        var sizeDecrease = 5;
+        var CONTEXT_LETTER_SPACING = '-2px'; 
+
+        for (let k = start; k < end; k++) {
+            let currentWord = words[k];
+            let lineContent;
+            var distance = Math.abs(k - i);
+            var sizeStep = Math.floor(distance / wordsPerStep);
+            var currentFontSize = Math.max(12, baseFontSize - (sizeStep * sizeDecrease));
+            var opacity = k === i ? 1 : (1 - distance / (contextCount * 1.5));
+            var wordStyle = 'font-size:' + currentFontSize + 'px; margin: 0 2px; line-height:' + 1.5 + 'em; opacity:' + opacity + '; white-space:nowrap; letter-spacing:' + CONTEXT_LETTER_SPACING + ';';
+
+            if (k === i) {
+                lineContent = '<span style="color:' + ORP_COLOR + ';font-weight:bold;text-decoration:underline;text-shadow: ' + ORP_GLOW + ';">' + currentWord + '</span>';
+            } else {
+                lineContent = '<span>' + currentWord + '</span>';
+            }
+            contextHTML += '<span style="' + wordStyle + '">' + lineContent + '</span>';
+        }
+
+        readerBox.style.transform = 'translate(-50%, -50%)';
+        readerBox.style.textAlign = 'center';
+        readerBox.style.marginLeft = '0';
+        readerBox.style.lineHeight = '1.5';
+        readerBox.style.fontSize = '30px';
+        readerBox.innerHTML = '<div style="width:100%; margin: 0 auto; white-space:nowrap; text-align:center;">' + contextHTML + '</div>';
+    };
+
+    var startReading = function (currentWPM) {
+        if (intervalId) { clearInterval(intervalId); }
+        if (i >= words.length) {
+            togglePause();
+            playPauseButton.innerText = 'Fim';
+            playPauseButton.disabled = true;
+            return;
+        }
+
+        if (isPaused) {
+            showContext();
+            return;
+        }
+
+        playPauseButton.innerText = '||';
+        var msPerWord = 60000 / currentWPM;
+
+        intervalId = setInterval(function () {
+            if (i < words.length) {
+                renderRSVPWord();
+                wordsReadThisStreak++; 
+                i++;
+            } else {
+                clearInterval(intervalId);
+                togglePause();
+                playPauseButton.innerText = 'Fim';
+                playPauseButton.disabled = true;
+            }
+        }, msPerWord);
+    };
+
+    var togglePause = function () {
+        if (quizModal.style.display === 'flex' || (slotContainer && slotContainer.style.display === 'flex')) {
+            return; 
+        }
+         
+        if (i >= words.length && !isPaused) {
+             isPaused = true;
+             playPauseButton.innerText = 'Fim';
+             playPauseButton.disabled = true;
+        } else {
+             isPaused = !isPaused;
+        }
+       
+        if (i >= words.length && isPaused) {
+             showContext();
+             if (slotContainer) slotContainer.style.display = 'none'; 
+        }
+
+        if (isPaused) {
+            clearInterval(intervalId);
+            playPauseButton.innerText = 'Play'; 
+            
+            showContext(); 
+            saveState(); 
+            if (lexiconBox) lexiconBox.style.display = 'block'; 
+            
+            if ((i - lastQuizIndex) >= MIN_READ_WORDS) {
+                 startSlotGame(); 
+            }
+           
+        } else {
+            wpmAtStreakStart = wpm; 
+            
+            if (slotContainer) slotContainer.style.display = 'none';
+            if (lexiconBox) {
+                lexiconBox.style.display = 'none';
+                lexiconList.style.display = 'none'; 
+            }
+            if (notaList) notaList.style.display = 'none'; 
+            
+            playPauseButton.innerText = '||';
+            startReading(wpm);
+        }
+    };
+
+    var navRewind = function (count) {
+        i = Math.max(0, i - count);
+        if (isPaused) { showContext(); } else { startReading(wpm); }
+    };
+
+    var navForward = function (count) {
+        i = Math.min(words.length - 1, i + count);
+        if (isPaused) { showContext(); } else { startReading(wpm); }
+    };
+
+    var updateSpeed = function (delta) {
+        var newWPM = wpm + delta;
+        if (newWPM < 50) newWPM = 50;
+        if (newWPM > 1000) newWPM = 1000; 
+        wpm = newWPM;
+        speedDisplay.innerText = wpm + ' WPM';
+        if (!isPaused) { startReading(wpm); }
+    };
+    
+    var createButton = function(text, onClick, isPlayButton = false) {
+        var button = document.createElement('button');
+        button.innerText = text;
+        button.className = 'custom-button';
+        if (isPlayButton) {
+            button.style.width = '128px'; 
+        }
+        button.onclick = onClick;
+        return button;
+    };
+    
+    var shuffleArray = function(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+    };
+
+    // --- (FUNÇÕES DE SALVAR, LÉXICO, ETC - Novas) ---
+    
+    var saveState = function() {
+        if (words.length === 0) return;
+        const state = {
+            text: document.getElementById('text-input').value,
+            i: i,
+            currentNota: currentNota,
+            roundHistory: roundHistory, 
+            pontuacaoTotal: pontuacaoTotal, 
+            wpm: wpm,
+            lastQuizIndex: lastQuizIndex,
+            currentSegmentStartIndex: currentSegmentStartIndex,
+            fullLexicon: fullLexicon,
+            timestamp: Date.now()
+        };
+        localStorage.setItem('bmFastReaderSession', JSON.stringify(state));
+    };
+
+    var handleSaveGame = function() {
+        saveState();
+        saveFeedback.style.display = 'block';
+        setTimeout(() => {
+            saveFeedback.style.display = 'none';
+        }, 2000);
+    };
+
+    var loadState = function() {
+        const savedStateJSON = localStorage.getItem('bmFastReaderSession');
+        if (!savedStateJSON) return false;
+        
+        const state = JSON.parse(savedStateJSON);
+        document.getElementById('load-session-prompt').style.display = 'block';
+        document.getElementById('text-input').value = state.text; 
+        
+        document.getElementById('continue-session-button').onclick = () => {
+            document.getElementById('load-session-prompt').style.display = 'none';
+            startReadingMode(state.text, true); 
+            
+            i = state.i || 0;
+            currentNota = state.currentNota || 0;
+            roundHistory = state.roundHistory || []; 
+            pontuacaoTotal = state.pontuacaoTotal || 0; 
+            wpm = state.wpm || 200; 
+            wpmAtStreakStart = wpm; 
+            lastQuizIndex = state.lastQuizIndex || 0;
+            currentSegmentStartIndex = state.currentSegmentStartIndex || 0;
+            fullLexicon = state.fullLexicon || [];
+            
+            wpmInput.value = wpm;
+            updateSpeed(0); 
+            updateNotaDisplay(); 
+            updatePontuacaoTotalDisplay(); 
+            renderLexicon();
+            renderRoundHistory(); 
+            showContext(); 
+        };
+        
+        document.getElementById('new-session-button').onclick = () => {
+            localStorage.removeItem('bmFastReaderSession');
+            document.getElementById('load-session-prompt').style.display = 'none';
+            document.getElementById('text-input').value = '';
+        };
+        return true;
+    };
+
+    var handleChangeText = function() {
+        localStorage.removeItem('bmFastReaderSession');
+        words = []; i = 0; currentNota = 0; roundHistory = []; pontuacaoTotal = 0; 
+        currentRoundPontuacao = 0; lastQuizIndex = 0; currentSegmentStartIndex = 0;
+        fullLexicon = []; wpm = 200; wpmAtStreakStart = 200;
+        
+        if (intervalId) clearInterval(intervalId);
+        intervalId = null;
+
+        if (lexiconList && lexiconList.parentNode) lexiconList.parentNode.removeChild(lexiconList);
+        if (notaList && notaList.parentNode) notaList.parentNode.removeChild(notaList);
+        lexiconList = null;
+        notaList = null;
+
+        var overlay = document.getElementById('reading-overlay');
+        overlay.style.display = 'none';
+        overlay.innerHTML = ''; 
+
+        document.getElementById('input-screen').style.display = 'block';
+        document.getElementById('text-input').value = '';
+        document.getElementById('file-name-display').innerText = "Nenhum arquivo.";
+    };
+    
+    var handleDownloadFeedback = function() {
+        if (roundHistory.length === 0) {
+            console.warn("Nenhum histórico para baixar.");
+            return;
+        }
+
+        let txtContent = `GAME RSVP - Resumo da Sessão (${new Date().toLocaleString('pt-BR')})\n`;
+        txtContent += `=========================================================\n\n`;
+        txtContent += `Nota Média Final: ${currentNota.toFixed(1)}\n`;
+        txtContent += `Pontuação Total (Acertos): ${pontuacaoTotal.toFixed(2)}\n\n`;
+
+        roundHistory.forEach((round, index) => {
+            txtContent += `--- Rodada ${index + 1} ---\n`;
+            txtContent += `Nota (Líquida/Bruta): ${round.notaCalculada.toFixed(1)} / ${round.nota.toFixed(1)}\n`;
+            txtContent += `Pontuação: ${round.pontuacao.toFixed(2)} / ${round.maxPontuacao}\n`;
+            txtContent += `Tempo (Líquido/Penal.): ${round.tempoDescontado.toFixed(0)}s / ${round.tempoPenalizadoTotal.toFixed(0)}s\n`;
+            txtContent += `WPM (médio): ${round.wpmMedio.toFixed(0)}\n`;
+            txtContent += `Acertos Seguidos (Máx): ${round.sequentialCorrectMax}\n`;
+            txtContent += `Streak (palavras): ${round.streak}\n`;
+            
+            if (round.feedback && round.feedback.strengths) {
+                txtContent += `\nFeedback (Pontos Fortes):\n${(round.feedback.strengths || "").replace(/<li>/g, '  * ').replace(/<\/li>|<ul>|<\/ul>/g, '')}\n`;
+                txtContent += `Feedback (Pontos Fracos):\n${(round.feedback.weaknesses || "").replace(/<li>/g, '  * ').replace(/<\/li>|<ul>|<\/ul>/g, '')}\n`;
+            } else {
+                txtContent += `\nFeedback: (Não gerado)\n`;
+            }
+            
+            txtContent += `\n`;
+        });
+
+        const blob = new Blob([txtContent], { type: 'text/plain;charset=utf-8' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'feedback_game_rsvp.txt';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(a.href);
+    };
+
+
+    var renderLexicon = function() {
+        if (!lexiconList) return;
+        lexiconList.innerHTML = '';
+        if (fullLexicon.length === 0) {
+            lexiconList.innerHTML = '<p style="font-style: italic; color: #9CA3AF;">Léxico será gerado aqui...</p>';
+            return;
+        }
+        fullLexicon.forEach(item => {
+            const p = document.createElement('p');
+            p.innerHTML = `<strong>${item.term}</strong>${item.definition}`;
+            lexiconList.appendChild(p);
+        });
+    };
+    
+    var renderRoundHistory = function() {
+        if (!notaList) return;
+        notaList.innerHTML = '';
+        if (roundHistory.length === 0) {
+            notaList.innerHTML = '<p style="font-style: italic; color: #9CA3AF;">Nenhuma rodada concluída.</p>';
+            return;
+        }
+        
+        roundHistory.forEach((round, index) => {
+            const item = document.createElement('div');
+            item.className = 'round-item';
+            
+            const notaLiquidaStyle = getDynamicNotaStyle(round.notaCalculada, 18, 24);
+            const notaBrutaStyle = getDynamicNotaStyle(round.nota, 18, 24);
+
+            let tempoDisplay = `${round.tempoDescontado.toFixed(0)}s / ${round.tempoPenalizadoTotal.toFixed(0)}s`;
+            if (round.tempoDescontado < round.tempoPenalizadoTotal) {
+                 tempoDisplay = `<span style="color: #F87171;">${tempoDisplay}</span> (bônus)`;
+            } else if (round.tempoPenalizadoTotal > 0) {
+                 tempoDisplay = `<span style="color: #F87171;">${tempoDisplay}</span>`;
+            } else {
+                tempoDisplay = `${round.tempoTotal.toFixed(0)}s`; 
+            }
+            
+            item.innerHTML = `
+                <strong class="round-title">Rodada ${index + 1}</strong>
+                Nota: <span class="round-note-dynamic" style="${notaLiquidaStyle}">${round.notaCalculada.toFixed(1)}</span> / 
+                      <span class="round-note-dynamic" style="${notaBrutaStyle}">${round.nota.toFixed(1)}</span><br>
+                Tempo (Líquido/Penal.): ${tempoDisplay}<br>
+                Pontuação: ${round.pontuacao.toFixed(2)} / ${round.maxPontuacao}<br>
+                WPM (médio): ${round.wpmMedio.toFixed(0)}<br>
+                Acertos Seguidos (Máx): ${round.sequentialCorrectMax}<br>
+                Streak (palavras): ${round.streak}
+            `;
+            notaList.appendChild(item);
+        });
+    };
+
+    var showCountdown = function(callback) {
+        countdownOverlay.style.display = 'flex';
+        let count = 3;
+        countdownText.innerText = count;
+        
+        const timer = setInterval(() => {
+            count--;
+            if (count > 0) {
+                countdownText.innerText = count;
+            } else if (count === 0) {
+                countdownText.innerText = "VAI!";
+            } else {
+                clearInterval(timer);
+                countdownOverlay.style.display = 'none';
+                callback();
+            }
+        }, 1000);
+    };
+
+    // --- SETUP DA INTERFACE DE LEITURA (Original + Merged) ---
+
+    var initNotaDisplay = function(overlay) {
+        notaBox = document.createElement('div');
+        notaBox.id = 'nota-box';
+        
+        var notaLabel = document.createElement('span');
+        notaLabel.id = 'nota-box-label';
+        notaLabel.innerText = 'Nota Média: '; 
+        
+        notaDisplay = document.createElement('span');
+        notaDisplay.id = 'nota-display'; 
+        notaDisplay.innerText = '0.0'; 
+        
+        notaList = document.createElement('div'); 
+        notaList.id = 'nota-list';
+        document.body.appendChild(notaList); 
+        
+        notaBox.appendChild(notaLabel);
+        notaBox.appendChild(notaDisplay);
+        overlay.appendChild(notaBox);
+        
+        notaBox.onclick = function() {
+            if (isPaused || quizModal.style.display === 'flex') {
+                if (notaList.style.display === 'block') {
+                    notaList.style.display = 'none';
+                } else {
+                    const rect = notaBox.getBoundingClientRect();
+                    notaList.style.display = 'block';
+                    notaList.style.position = 'absolute';
+                    notaList.style.top = (rect.bottom + window.scrollY + 5) + 'px';
+                    notaList.style.right = (window.innerWidth - rect.right - window.scrollX) + 'px';
+                }
+            }
+        };
+        
+        updateNotaDisplay(); 
+        renderRoundHistory();
+    };
+
+    var initLexicon = function(container) {
+        lexiconBox = document.createElement('div');
+        lexiconBox.id = 'lexicon-box';
+        
+        var lexiconTitle = document.createElement('h3');
+        lexiconTitle.innerText = 'Léxico';
+        
+        lexiconList = document.createElement('div');
+        lexiconList.id = 'lexicon-list';
+        document.body.appendChild(lexiconList); 
+        
+        lexiconBox.appendChild(lexiconTitle);
+        container.appendChild(lexiconBox);
+
+        lexiconBox.onclick = function() {
+            if (isPaused || quizModal.style.display === 'flex') { 
+                if (lexiconList.style.display === 'block') {
+                    lexiconList.style.display = 'none';
+                } else {
+                    const rect = lexiconBox.getBoundingClientRect();
+                    lexiconList.style.display = 'block';
+                    lexiconList.style.position = 'absolute';
+                    lexiconList.style.bottom = (window.innerHeight - rect.top - window.scrollY + 5) + 'px';
+                    lexiconList.style.right = (window.innerWidth - rect.right - window.scrollX) + 'px';
+                }
+            }
+        };
+        
+        renderLexicon();
+    };
+
+
+    var initReadingUI = function () {
+        var overlay = document.getElementById('reading-overlay');
+        overlay.style.display = 'flex';
+        document.getElementById('input-screen').style.display = 'none';
+
+        overlay.innerHTML = ''; 
+
+        readerBox = document.createElement('div');
+        readerBox.id = 'reader-box';
+        readerBox.style.cssText = 'color:#fff;font-size:52px;font-family:monospace;text-align:left;z-index:99999;position:absolute;left:50%;top:50%;';
+        readerBox.style.display = 'block';
+        overlay.appendChild(readerBox);
+
+        var headerContainer = document.createElement('div');
+        headerContainer.style.cssText = 'position: absolute; top: 1.25rem; z-index: 50; width: 100%; display: flex; flex-direction: column; align-items: center;';
+        
+        var titleDisplay = document.createElement('div');
+        titleDisplay.innerText = title;
+        titleDisplay.style.cssText = 'color: white; font-size: 1.125rem; margin-bottom: 0.5rem;';
+        
+        var speedController = document.createElement('div');
+        speedController.style.cssText = 'display: flex; align-items: center;';
+        
+        speedDisplay = document.createElement('span');
+        speedDisplay.style.cssText = 'font-size: 1.25rem; padding: 0 0.5rem; color: white;';
+
+        var downButton = createButton('<<', function () { updateSpeed(-50); });
+        var upButton = createButton('>>', function () { updateSpeed(50); });
+        
+        wpmInput = document.createElement('input');
+        wpmInput.type = 'number';
+        wpmInput.id = 'wpm-input';
+        wpmInput.value = wpm;
+        wpmInput.min = 50;
+        wpmInput.step = 10;
+        wpmInput.style.cssText = 'width: 60px; background: transparent; border: none; border-bottom: 2px solid #4b5563; color: white; font-size: 16px; margin: 0 10px; text-align: center;';
+        wpmInput.onchange = function() {
+            wpm = parseInt(wpmInput.value, 10) || 200; 
+            updateSpeed(0); 
+        };
+
+        speedController.appendChild(downButton);
+        speedController.appendChild(wpmInput); 
+        speedController.appendChild(upButton);
+        headerContainer.appendChild(titleDisplay);
+        headerContainer.appendChild(speedDisplay); 
+        headerContainer.appendChild(speedController); 
+        overlay.appendChild(headerContainer);
+
+        var mediaControls = document.createElement('div');
+        mediaControls.style.cssText = 'position: absolute; bottom: 1.25rem; z-index: 100002; width: 100%; display: flex; align-items: flex-end; justify-content: space-between; padding: 0 1.25rem; box-sizing: border-box;';
+        
+        var controlButtonsContainer = document.createElement('div');
+        controlButtonsContainer.style.display = 'flex';
+        
+        var rightContainer = document.createElement('div');
+        rightContainer.style.cssText = 'display: flex; align-items: flex-end;';
+        
+        var signatureBlock = document.createElement('div');
+        signatureBlock.id = 'signature-block';
+
+        pontuacaoTotalDisplay = document.createElement('span');
+        pontuacaoTotalDisplay.id = 'pontuacao-total-display';
+        updatePontuacaoTotalDisplay(); 
+
+        var signatureContainer = document.createElement('span');
+        signatureContainer.id = 'signature-container';
+        signatureContainer.innerText = version + '.' + signature;
+
+        signatureBlock.appendChild(pontuacaoTotalDisplay); 
+        signatureBlock.appendChild(signatureContainer);
+
+
+        var rewindButton = createButton('<< 10', function () { navRewind(10); });
+        playPauseButton = createButton('Play', togglePause, true); 
+        var forwardButton = createButton('>> 1', function () { navForward(1); });
+        
+        var saveGameButton = createButton('Salvar', handleSaveGame);
+        saveGameButton.className = 'custom-button button-save-game';
+
+        controlButtonsContainer.appendChild(rewindButton);
+        controlButtonsContainer.appendChild(saveGameButton); 
+        controlButtonsContainer.appendChild(playPauseButton);
+        controlButtonsContainer.appendChild(forwardButton);
+        
+        initLexicon(rightContainer); 
+        
+        rightContainer.appendChild(signatureBlock);
+        
+        mediaControls.appendChild(controlButtonsContainer);
+        mediaControls.appendChild(rightContainer);
+        overlay.appendChild(mediaControls);
+
+        // (MODIFICADO v24) Z-Index corrigido
+        var topLeftControls = document.createElement('div');
+        topLeftControls.style.cssText = 'position: absolute; top: 1rem; left: 1rem; z-index: 100002; display: flex; flex-direction: column; gap: 8px;';
+        
+        var closeButton = createButton('Trocar Texto', handleChangeText);
+        closeButton.className = 'custom-button';
+        closeButton.style.cssText += 'background-color: #b91c1c; border-color: #b91c1c; padding: 5px 10px; font-size: 12px; margin: 0;';
+        
+        var downloadButton = createButton('Baixar Feedback', handleDownloadFeedback);
+        downloadButton.className = 'custom-button button-download';
+        downloadButton.style.cssText += 'padding: 5px 10px; font-size: 12px; margin: 0;';
+
+        topLeftControls.appendChild(closeButton);
+        topLeftControls.appendChild(downloadButton);
+        overlay.appendChild(topLeftControls);
+
+        initNotaDisplay(overlay); 
+        
+        saveFeedback = document.createElement('div');
+        saveFeedback.id = 'save-feedback';
+        saveFeedback.innerText = 'Jogo Salvo!';
+        overlay.appendChild(saveFeedback);
+
+        slotContainer = document.createElement('div');
+        slotContainer.style.cssText = 'position: absolute; background: #374151; padding: 20px; border-radius: 12px; box-shadow: 0 10px 15px rgba(0,0,0,0.5); display: none; flex-direction: column; align-items: center; z-index: 100000; top: 50%; left: 50%; transform: translate(-50%, -50%);';
+        overlay.appendChild(slotContainer);
+
+        speedDisplay.innerText = wpm + ' WPM';
+        playPauseButton.innerText = 'Play'; 
+        isPaused = true;
+        showContext();
+
+        document.onkeydown = function (e) {
+            if (overlay.style.display !== 'flex') return;
+            
+            if (quizModal.style.display === 'flex' || slotContainer.style.display === 'flex') {
+                
+                if (e.key === 'Enter' && e.shiftKey) {
+                    e.preventDefault(); 
+                    if (quizNextButton.style.display === 'block' && !quizNextButton.disabled) {
+                        quizNextButton.click();
+                    }
+                    return; 
+                }
+                
+                if (e.target.tagName === 'TEXTAREA') return; 
+                e.preventDefault(); 
+                return;
+            }
+
+            if (e.target.id === 'wpm-input') return;
+
+            switch (e.key) {
+                case ' ':
+                    e.preventDefault();
+                    togglePause();
+                    break;
+                case 'ArrowLeft':
+                    e.preventDefault();
+                    navRewind(10);
+                    break;
+                case 'ArrowRight':
+                    e.preventDefault();
+                    navForward(1);
+                    break;
+                case 'ArrowUp':
+                    e.preventDefault();
+                    updateSpeed(50);
+                    wpmInput.value = wpm; 
+                    break;
+                case 'ArrowDown':
+                    e.preventDefault();
+                    updateSpeed(-50);
+                    wpmInput.value = wpm; 
+                    break;
+            }
+        };
+    };
+    
+    var startReadingMode = function (inputText, isLoading = false) {
+        var cleanText = inputText.trim();
+        if (cleanText.length === 0) {
+            document.getElementById('file-name-display').innerText = "Erro: Nenhum texto válido foi fornecido.";
+            document.getElementById('file-name-display').classList.add("text-red-400");
+            return;
+        }
+
+        initReadingUI();
+
+        if (!isLoading) {
+            i = 0;
+            words = cleanText.split(/\s+/).filter(w => w.length > 0);
+            currentNota = 0;
+            roundHistory = []; 
+            pontuacaoTotal = 0; 
+            currentRoundPontuacao = 0; 
+            lastQuizIndex = 0;
+            currentSegmentStartIndex = 0;
+            fullLexicon = [];
+            wordsReadThisStreak = 0;
+            sequentialCorrect = 0;
+            sequentialCorrectMax = 0;
+            essayCriticalHits = 0;
+            
+            renderLexicon(); 
+            generateLexicon(cleanText)
+                .then(lexiconResult => {
+                    fullLexicon = lexiconResult.terms || [];
+                    renderLexicon();
+                    saveState(); 
+                })
+                .catch(err => {
+                    console.error("Falha ao gerar léxico:", err);
+                    if(lexiconList) lexiconList.innerHTML = '<p class="feedback-incorrect">Erro ao gerar léxico.</p>';
+                });
+        } else {
+             words = cleanText.split(/\s+/).filter(w => w.length > 0);
+        }
+
+        sequentialCorrect = 0;
+        sequentialCorrectMax = 0;
+        updateNotaDisplay(); 
+        updatePontuacaoTotalDisplay(); 
+        renderRoundHistory(); 
+        isPaused = true; 
+        showContext();
+        if(lexiconBox) lexiconBox.style.display = 'block'; 
+        
+        playPauseButton.innerText = 'Play'; 
+        playPauseButton.disabled = false; 
+        
+        if (!isLoading) {
+            isPaused = true;
+            playPauseButton.disabled = true; 
+            
+            showCountdown(() => {
+                playPauseButton.disabled = false;
+                togglePause(); 
+            });
+        }
+    };
+    
+    // --- (FUNÇÕES DE QUIZ, SLOT, API) ---
+    
+    var handleQuizAnswer = function(response) {
+        var qType = questions[currentQuestionIndex];
+        var isCorrect = (response === qType.a);
+        quizFeedback.className = '';
+        
+        if (isCorrect) {
+            quizFeedback.innerText = "Correto!";
+            quizFeedback.classList.add('feedback-correct');
+            correctAnswers++;
+            sequentialCorrect++;
+            currentRoundPontuacao += 1; 
+        } else {
+            quizFeedback.innerText = `Incorreto. A resposta era: ${qType.a}`;
+            quizFeedback.classList.add('feedback-incorrect');
+            sequentialCorrect = 0;
+        }
+        
+        Array.from(quizOptionsContainer.children).forEach(btn => {
+            btn.disabled = true;
+            const btnText = btn.innerText;
+
+            if (isCorrect) {
+                if (btnText === qType.a) {
+                    btn.classList.add('button-quiz-correct'); 
+                } else {
+                    btn.style.display = 'none'; 
+                }
+            } else {
+                if (btnText === qType.a) {
+                    btn.classList.add('button-quiz-correct'); 
+                } else if (btnText === response) {
+                    btn.classList.add('button-quiz-incorrect'); 
+                } else {
+                    btn.style.display = 'none'; 
+                }
+            }
+        });
+        
+        if (sequentialCorrect > sequentialCorrectMax) {
+            sequentialCorrectMax = sequentialCorrect;
+        }
+        userAnswers.push({ q: qType.q, response: response, isCorrect: isCorrect });
+        currentQuestionIndex++;
+        
+        if (currentQuestionIndex >= questions.length) {
+            quizNextButton.innerText = 'Finalizar Rodada';
+        } else {
+            quizNextButton.innerText = 'Próxima Pergunta';
+        }
+        quizNextButton.style.display = 'block';
+    };
+
+    var handleEssaySubmit = function() {
+        var qType = questions[currentQuestionIndex];
+        var userAnswer = quizEssayInput.value;
+        quizEssaySubmit.disabled = true;
+        quizEssayInput.disabled = true;
+        quizFeedback.innerText = "Corrigindo...";
+        quizFeedback.className = '';
+
+        gradeEssayAnswer(readContextText, qType.q, userAnswer)
+            .then(gradingResult => {
+                var score = gradingResult.score; 
+                var feedback = gradingResult.feedback;
+                var isCorrect = score >= 0.7; 
+                var isCritical = score === 1.0;
+                
+                currentRoundPontuacao += score; 
+                
+                userAnswers.push({ q: qType.q, response: userAnswer, isCorrect: isCorrect, feedback: feedback, score: score });
+                if (isCritical) {
+                    quizFeedback.innerText = `ACERTO CRÍTICO (Nota: 1.0)! Bônus! ${feedback}`;
+                    quizFeedback.classList.add('feedback-critical');
+                    correctAnswers++;
+                    sequentialCorrect++;
+                    essayCriticalHits++; 
+                } else if (isCorrect) {
+                    quizFeedback.innerText = `Correto (Nota: ${score.toFixed(1)})! ${feedback}`;
+                    quizFeedback.classList.add('feedback-correct');
+                    correctAnswers++;
+                    sequentialCorrect++;
+                } else {
+                    quizFeedback.innerText = `Parcialmente (Nota: ${score.toFixed(1)}). ${feedback}`;
+                    quizFeedback.classList.add('feedback-incorrect');
+                    sequentialCorrect = 0;
+                }
+                if (sequentialCorrect > sequentialCorrectMax) {
+                    sequentialCorrectMax = sequentialCorrect;
+                }
+                currentQuestionIndex++;
+                
+                if (currentQuestionIndex >= questions.length) {
+                    quizNextButton.innerText = 'Finalizar Rodada';
+                } else {
+                    quizNextButton.innerText = 'Próxima Pergunta';
+                }
+                quizNextButton.style.display = 'block';
+            })
+            .catch(err => {
+                console.error("Erro ao corrigir:", err);
+                quizFeedback.innerText = "Erro ao corrigir. Tente novamente.";
+                quizEssaySubmit.disabled = false;
+                quizEssayInput.disabled = false;
+            });
+    };
+
+    var showQuizModal = function (qType) {
+        quizModal.style.display = 'flex';
+        quizQuestionTitle.innerText = `Pergunta ${currentQuestionIndex + 1} de ${questions.length}`;
+        quizQuestionText.innerText = qType.q;
+        quizOptionsContainer.innerHTML = '';
+        quizEssayContainer.style.display = 'none';
+        quizNextButton.style.display = 'none';
+        quizNextButton.innerText = 'Próxima Pergunta'; 
+        quizFeedback.innerText = '';
+        quizFeedback.className = '';
+        if (qType.type === 'tf' || qType.type === 'mc') {
+            quizOptionsContainer.style.display = 'flex';
+            
+            shuffleArray(qType.options); 
+
+            qType.options.forEach(opt => { 
+                var btn = createButton(opt, () => handleQuizAnswer(opt));
+                btn.className = 'custom-button button-quiz'; 
+                quizOptionsContainer.appendChild(btn);
+            });
+        } else if (qType.type === 'essay') {
+            quizEssayContainer.style.display = 'block';
+            quizEssayInput.value = '';
+            quizEssayInput.disabled = false;
+            quizEssaySubmit.disabled = false;
+        }
+    };
+
+    var askQuestion = function () {
+        if (currentQuestionIndex >= questions.length) {
+            calculateNota(); 
+            showQuizSummary(); 
+            return;
+        }
+        var qType = questions[currentQuestionIndex];
+        showQuizModal(qType);
+    };
+
+    var calculateNota = function() {
+        var timeTaken = (Date.now() - quizStartTime) / 1000;
+        
+        // --- 1. NOTA BRUTA (PRECISÃO) ---
+        var maxPontuacaoPossivel = questions.length; 
+        var notaPuraDaRodada = (currentRoundPontuacao / maxPontuacaoPossivel) * 10;
+        notaPuraDaRodada = Math.max(0, Math.min(10, notaPuraDaRodada));
+
+        // --- 2. CÁLCULO DE TEMPO ---
+        var freeTimePerQuestion = 8; 
+        var freeTime = questions.length * freeTimePerQuestion;
+        var tempoPenalizadoTotal = Math.max(0, timeTaken - freeTime);
+        var tempoFinalDescontado = tempoPenalizadoTotal * ((questions.length - essayCriticalHits) / questions.length);
+        
+        // --- 3. CÁLCULO DE BÔNUS (FÓRMULA v22) ---
+        const wpmMedio = (wpmAtStreakStart + wpm) / 2;
+        let comparativeBonus = 0;
+
+        if (roundHistory.length > 0) {
+            const prevRound = roundHistory[roundHistory.length - 1];
+            
+            const prevWPM = prevRound.wpmMedio > 0 ? prevRound.wpmMedio : wpmMedio;
+            const prevTime = prevRound.tempoDescontado > 0 ? prevRound.tempoDescontado : 1;
+            
+            const currentTime = tempoFinalDescontado > 0 ? tempoFinalDescontado : 1;
+            
+            const wpmRatio = (wpmMedio / prevWPM);
+            const timeRatio = (prevTime / currentTime);
+            
+            comparativeBonus = wpmRatio * timeRatio;
+        }
+        
+        // --- 4. NOTA LÍQUIDA FINAL ---
+        var notaCalculadaDaRodada = notaPuraDaRodada + comparativeBonus;
+        notaCalculadaDaRodada = Math.max(0, Math.min(10, notaCalculadaDaRodada));
+        
+        // --- 5. SALVAR HISTÓRICO ---
+        roundHistory.push({
+            nota: notaPuraDaRodada, 
+            notaCalculada: notaCalculadaDaRodada, 
+            tempoTotal: timeTaken,
+            tempoDescontado: tempoFinalDescontado,
+            tempoPenalizadoTotal: tempoPenalizadoTotal,
+            pontuacao: currentRoundPontuacao,
+            maxPontuacao: maxPontuacaoPossivel,
+            wpmMedio: wpmMedio,
+            streak: wordsReadThisStreak,
+            sequentialCorrectMax: sequentialCorrectMax,
+            feedback: {} 
+        });
+        
+        pontuacaoTotal += currentRoundPontuacao;
+        currentRoundPontuacao = 0; 
+        
+        currentNota = roundHistory.reduce((a, b) => a + b.notaCalculada, 0) / roundHistory.length;
+        
+        updateNotaDisplay();
+        updatePontuacaoTotalDisplay(); 
+        renderRoundHistory(); 
+        
+        wordsReadThisStreak = 0;
+        sequentialCorrect = 0; 
+        sequentialCorrectMax = 0;
+        essayCriticalHits = 0; 
+    };
+    
+    var getDynamicNotaStyle = function(nota, baseSize = 22, maxSize = 38) {
+        const size = baseSize + ( (nota / 10) * (maxSize - baseSize) );
+        const hue = (nota / 10) * 200; 
+        const color = `hsl(${hue}, 90%, 70%)`;
+        return `font-size: ${size}px; color: ${color};`;
+    };
+    
+    var updateNotaDisplay = function() {
+        if(!notaDisplay) return;
+        
+        var nota = currentNota; 
+        notaDisplay.innerText = nota.toFixed(1);
+        
+        const style = getDynamicNotaStyle(nota, 22, 38);
+        notaDisplay.style.fontSize = style.match(/font-size: (.*?)px;/)[1] + 'px';
+        notaDisplay.style.color = style.match(/color: (.*?);/)[1];
+    };
+    
+    var updatePontuacaoTotalDisplay = function() {
+        if (pontuacaoTotalDisplay) {
+            pontuacaoTotalDisplay.innerHTML = `Pontuação Total: <span>${pontuacaoTotal.toFixed(2)}</span>`;
+        }
+    };
+
+    var stopGame = function () {
+        questions = [];
+        currentQuestionIndex = 0;
+        correctAnswers = 0;
+        totalResponseTime = 0;
+        wordsReadThisStreak = 0;
+        sequentialCorrect = 0;
+        sequentialCorrectMax = 0;
+        essayCriticalHits = 0;
+        currentRoundPontuacao = 0; 
+        lastQuizIndex = i; 
+        
+        if (quizModal) quizModal.style.display = 'none';
+        if (notaList) notaList.style.display = 'none'; 
+        if (lexiconList) lexiconList.style.display = 'none'; 
+        
+        isPaused = true;
+        playPauseButton.innerText = 'Play'; 
+        if (lexiconBox) lexiconBox.style.display = 'block';
+        showContext();
+        saveState();
+    };
+
+    var handleReviewSegment = function() {
+        i = currentSegmentStartIndex; 
+        
+        // (v23) Não remove mais o histórico
+        
+        stopGame();
+    };
+
+    var showQuizSummary = function() {
+        quizQuestionTitle.innerText = 'Feedback do Quiz';
+        quizQuestionText.innerHTML = '<span class="feedback-correct">Gerando feedback sobre sua performance...</span>';
+        quizOptionsContainer.innerHTML = '';
+        quizEssayContainer.style.display = 'none';
+        quizNextButton.style.display = 'none';
+        quizFeedback.innerText = '';
+        quizFeedback.className = '';
+        
+        if (notaList) notaList.style.display = 'none'; 
+        if (lexiconList) lexiconList.style.display = 'none';
+        
+        generateQuizSummary(readContextText, JSON.stringify(userAnswers))
+            .then(summary => {
+                
+                if (roundHistory.length > 0) {
+                    roundHistory[roundHistory.length - 1].feedback = summary;
+                    saveState(); 
+                }
+
+                const strengthsHtml = '<ul>' + (summary.strengths || "").split('* ').filter(s => s.trim().length > 0).map(s => `<li>${s.trim().replace(/\n/g, '')}</li>`).join('') + '</ul>';
+                const weaknessesHtml = '<ul>' + (summary.weaknesses || "").split('* ').filter(s => s.trim().length > 0).map(s => `<li>${s.trim().replace(/\n/g, '')}</li>`).join('') + '</ul>';
+                
+                quizQuestionText.innerHTML = `
+                    <p style="text-align: left;"><strong>Pontos Fortes:</strong> ${strengthsHtml || "Nenhum ponto forte específico."}</p>
+                    <p style="text-align: left; margin-top: 10px;"><strong>Pontos Fracos:</strong> ${weaknessesHtml || "Nenhum ponto fraco específico."}</p>
+                    <p style="text-align: center; margin-top: 15px;">Deseja revisar este trecho ou continuar?</p>
+                `;
+                var reviewButton = createButton('Refazer Trecho', handleReviewSegment);
+                reviewButton.className = 'custom-button button-review'; 
+                var continueButton = createButton('Continuar Leitura', stopGame);
+                quizOptionsContainer.appendChild(reviewButton);
+                quizOptionsContainer.appendChild(continueButton);
+                quizOptionsContainer.style.display = 'flex';
+                quizOptionsContainer.style.flexDirection = 'row';
+                quizOptionsContainer.style.justifyContent = 'center';
+            })
+            .catch(err => {
+                console.error("Erro ao gerar feedback:", err);
+                quizQuestionText.innerHTML = `
+                    <p class="feedback-incorrect">Não foi possível gerar o feedback.</p>
+                    <p style="margin-top: 15px;">Deseja revisar este trecho ou continuar?</p>
+                `;
+                var reviewButton = createButton('Refazer Trecho', handleReviewSegment);
+                reviewButton.className = 'custom-button button-review';
+                var continueButton = createButton('Continuar', stopGame);
+                quizOptionsContainer.appendChild(reviewButton);
+                quizOptionsContainer.appendChild(continueButton);
+                quizOptionsContainer.style.display = 'flex';
+                quizOptionsContainer.style.flexDirection = 'row';
+                quizOptionsContainer.style.justifyContent = 'center';
+            });
+    };
+
+    // --- (FUNÇÕES DA API) ---
+    async function fetchWithBackoff(payload, schema, retries = 3, delay = 1000) {
+        payload.generationConfig = {
+            responseMimeType: "application/json",
+            responseSchema: schema,
+        };
+        try {
+            const response = await fetch(gen2apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (!response.ok) {
+                if (response.status === 429 && retries > 0) { 
+                    await new Promise(res => setTimeout(res, delay));
+                    return fetchWithBackoff(payload, schema, retries - 1, delay * 2);
+                }
+                throw new Error(`Erro na API: ${response.status} ${response.statusText}`);
+            }
+            const result = await response.json();
+            if (result.candidates && result.candidates[0].content && result.candidates[0].content.parts[0].text) {
+                const jsonText = result.candidates[0].content.parts[0].text;
+                return JSON.parse(jsonText);
+            } else {
+                console.warn("API retornou resposta vazia ou mal formatada:", result);
+                if (retries > 0) {
+                    await new Promise(res => setTimeout(res, delay));
+                    return fetchWithBackoff(payload, schema, retries - 1, delay * 2);
+                }
+                throw new Error("Resposta da API mal formatada ou vazia.");
+            }
+        } catch (error) {
+            if (retries > 0) {
+                await new Promise(res => setTimeout(res, delay));
+                return fetchWithBackoff(payload, schema, retries - 1, delay * 2);
+            }
+            console.error("Erro na chamada da API:", error);
+            throw error;
+        }
+    }
+    
+    async function generateQuestions(contextText, qTypes, difficulty) { 
+        var numQuestions = qTypes.length; 
+        const typeMap = { 'tf': 'Verdadeiro/Falso', 'mc': 'Múltipla Escolha', 'essay': 'Dissertativa' };
+        const requestedTypes = qTypes.map(type => typeMap[type]).join(', '); 
+
+        const systemPrompt = `Você é um assistente de quiz.
+Gere ${numQuestions} perguntas de quiz (em Português) baseadas ESTREITAMENTE no 'Contexto'.
+As perguntas devem seguir esta ordem exata de tipos: [${requestedTypes}].
+A dificuldade deve ser: ${difficulty}.
+A resposta 'a' para 'mc' e 'tf' deve ser a string exata da opção correta.
+Para 'essay', 'a' deve ser uma resposta modelo concisa.
+(IMPORTANTE) Para perguntas 'mc' (Múltipla Escolha) com 4 opções, garanta que as opções sejam: 1 correta, 1 100% absurda/falsa, 1 que pareça correta mas tenha um termo-chave errado, e 1 que misture conceitos errados ou seja plausível mas incorreta.
+Retorne APENAS um array JSON válido, conforme o schema.`;
+
+        const userQuery = `Contexto: [${contextText}]\n\nGere ${numQuestions} perguntas (tipos: [${requestedTypes}], dificuldade: ${difficulty}).`;
+
+        const payload = { contents: [{ parts: [{ text: userQuery }] }], systemInstruction: { parts: [{ text: systemPrompt }] } };
+        return fetchWithBackoff(payload, QUESTIONS_SCHEMA);
+    }
+    async function gradeEssayAnswer(contextText, question, userAnswer) {
+        const systemPrompt = `Você é um corretor de quiz.
+Avalie a 'Resposta do Usuário' para a 'Pergunta' com base no 'Contexto'.
+A nota deve ser de 0.0 (totalmente errada) a 1.0 (perfeita).
+O feedback (em Português) deve ser 1 frase explicando a nota.
+Seja rigoroso com a precisão em relação ao contexto.
+Retorne APENAS um objeto JSON válido, conforme o schema.`;
+        const userQuery = `Contexto: [${contextText}]\n\nPergunta: ${question}\n\nResposta do Usuário: ${userAnswer}\n\nAvalie a resposta.`;
+        const payload = { contents: [{ parts: [{ text: userQuery }] }], systemInstruction: { parts: [{ text: systemPrompt }] } };
+        return fetchWithBackoff(payload, GRADING_SCHEMA);
+    }
+    async function generateQuizSummary(contextText, userAnswersJSON) {
+        const systemPrompt = `Você é um tutor de retenção de leitura.
+O usuário leu o 'Contexto' e respondeu a um 'Quiz'.
+Sua tarefa é analisar o histórico de respostas do usuário (JSON) e o contexto.
+Gere um feedback em Português sobre os pontos fortes (o que ele entendeu) e os pontos fracos (o que ele errou).
+Formate CADA lista usando marcadores '*' (asterisco seguido de espaço) e quebras de linha.
+Seja sucinto (máximo 3 tópicos para cada).
+Retorne no formato JSON estrito conforme o schema.`;
+        const userQuery = `Contexto: [${contextText}]\n\nHistórico de Perguntas e Respostas do Usuário: ${userAnswersJSON}\n\nAvalie a performance geral do usuário.`;
+        const payload = { contents: [{ parts: [{ text: userQuery }] }], systemInstruction: { parts: [{ text: "system" }, { text: systemPrompt }] } };
+        return fetchWithBackoff(payload, SUMMARY_SCHEMA);
+    }
+    async function generateLexicon(fullText) {
+        const systemPrompt = `Você é um assistente de vocabulário.
+Analise o 'Texto Completo' e identifique os 10 termos ou conceitos mais importantes.
+Para cada termo, forneça uma definição concisa (1-2 frases) baseada ESTREITAMENTE em como o termo é usado no contexto do texto.
+Retorne APENAS um objeto JSON válido, conforme o schema.`;
+        const userQuery = `Texto Completo: [${fullText}]\n\nGere o léxico.`;
+        const payload = { contents: [{ parts: [{ text: userQuery }] }], systemInstruction: { parts: [{ text: "system" }, { text: systemPrompt }] } };
+        return fetchWithBackoff(payload, LEXICON_SCHEMA);
+    }
+
+    // --- LÓGICA DO SLOT MACHINE (Original + Adaptada) ---
+
+    const slotTypeMap = ['tf', 'mc', 'essay'];
+
+    function spinSlot(slotIndex) {
+        let iconIndex = 0;
+        slotIntervals[slotIndex] = setInterval(() => {
+            slotContainer.children[1].children[slotIndex].innerText = SLOT_OPTIONS[iconIndex]; // [1] é o slotsWrapper
+            iconIndex = (iconIndex + 1) % SLOT_OPTIONS.length;
+        }, 100);
+    }
+
+    function stopSlot(slotIndex) {
+        clearInterval(slotIntervals[slotIndex]);
+        const finalIndex = Math.floor(Math.random() * SLOT_OPTIONS.length);
+        slotContainer.children[1].children[slotIndex].innerText = SLOT_OPTIONS[finalIndex]; // [1] é o slotsWrapper
+        slotsState[slotIndex] = slotTypeMap[finalIndex];
+    }
+
+    var startSlotGame = function() {
+        slotContainer.innerHTML = ''; 
+        slotContainer.style.display = 'flex';
+        
+        var title = document.createElement('h3');
+        title.innerText = 'Quiz Surpresa!';
+        title.style.cssText = 'color: white; font-size: 20px; font-weight: bold; margin-bottom: 15px; font-family: sans-serif;';
+        slotContainer.appendChild(title);
+        
+        var slotsWrapper = document.createElement('div');
+        slotsWrapper.style.display = 'flex';
+        slotsWrapper.style.marginBottom = '15px';
+        
+        for (let i = 0; i < 3; i++) {
+            var slot = document.createElement('div');
+            slot.className = 'slot-item';
+            slot.innerText = '?';
+            slotsWrapper.appendChild(slot);
+        }
+        slotContainer.appendChild(slotsWrapper);
+        
+        var triggerButton = createButton('Parar!', handleSlotTrigger);
+        triggerButton.id = 'slot-trigger-button'; 
+        slotContainer.appendChild(triggerButton);
+        
+        slotsState = ['', '', ''];
+        spinSlot(0);
+        spinSlot(1);
+        spinSlot(2);
+        activeSlot = 0;
+        slotsWrapper.children[0].style.borderColor = '#FBBF24'; 
+    };
+
+    var handleSlotTrigger = function() {
+        var triggerButton = document.getElementById('slot-trigger-button');
+        var slotsWrapper = slotContainer.children[1]; 
+        
+        stopSlot(activeSlot);
+        slotsWrapper.children[activeSlot].style.borderColor = ORP_COLOR; 
+        
+        activeSlot++;
+        
+        if (activeSlot < 3) {
+            slotsWrapper.children[activeSlot].style.borderColor = '#FBBF24'; 
+        } else {
+            triggerButton.innerText = 'Gerando Quiz...';
+            triggerButton.disabled = true;
+            startQuizGeneration();
+        }
+    };
+    
+    var getDifficultyLevel = function(nota) {
+        if (nota < 5) return "Fácil";
+        if (nota < 8) return "Médio";
+        return "Difícil";
+    };
+
+    var startQuizGeneration = function() {
+        userAnswers = []; 
+        currentSegmentStartIndex = lastQuizIndex; 
+        readContextText = words.slice(currentSegmentStartIndex, i).join(' '); 
+        
+        var wordCount = words.slice(currentSegmentStartIndex, i).length;
+        
+        if (wordCount < MIN_READ_WORDS) {
+            if(slotContainer) slotContainer.style.display = 'none';
+            stopGame(); 
+            return;
+        }
+
+        var numQuestions = Math.max(3, Math.floor(wordCount / 100));
+        var generatedTypes = [];
+        for (let j = 0; j < numQuestions; j++) {
+            generatedTypes.push(slotsState[j % 3]); 
+        }
+        
+        var currentDifficulty = getDifficultyLevel(currentNota);
+        
+        generateQuestions(readContextText, generatedTypes, currentDifficulty) 
+            .then(dynamicQuestions => {
+                if(slotContainer) slotContainer.style.display = 'none';
+                
+                questions = dynamicQuestions;
+                
+                if (!questions || questions.length === 0) {
+                     console.error("API não retornou perguntas válidas.");
+                     throw new Error("API não retornou perguntas.");
+                }
+                if (questions.length !== numQuestions) {
+                     console.warn(`Aviso: Solicitado ${numQuestions} perguntas, mas ${questions.length} recebidas.`);
+                }
+
+                currentQuestionIndex = 0;
+                correctAnswers = 0;
+                quizStartTime = Date.now();
+                askQuestion(); 
+            })
+            .catch(error => {
+                console.error("Erro ao gerar perguntas:", error);
+                if(slotContainer) slotContainer.style.display = 'none';
+                stopGame();
+            });
+    };
+    
+    var handleFileUpload = function(event) {
+        var file = event.target.files[0];
+        var textInput = document.getElementById('text-input');
+        var fileNameDisplay = document.getElementById('file-name-display');
+
+        if (!file || !file.type.match('text.*')) {
+            fileNameDisplay.innerText = "Apenas arquivos .txt são permitidos.";
+            fileNameDisplay.classList.add("text-red-400");
+            return;
+        }
+        
+        fileNameDisplay.innerText = file.name;
+        fileNameDisplay.classList.remove("text-red-400");
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            localStorage.removeItem('bmFastReaderSession');
+            document.getElementById('load-session-prompt').style.display = 'none';
+            textInput.value = e.target.result;
+            document.getElementById('file-upload').value = '';
+        };
+        reader.readAsText(file); 
+    };
+
+    // --- LÓGICA DE INICIALIZAÇÃO DA PÁGINA ---
+    document.addEventListener('DOMContentLoaded', function () {
+        // IDs Estáticos
+        inputScreen = document.getElementById('input-screen');
+        countdownOverlay = document.getElementById('countdown-overlay');
+        countdownText = document.getElementById('countdown-text');
+        quizModal = document.getElementById('quiz-modal');
+        quizQuestionTitle = document.getElementById('quiz-question-title');
+        quizQuestionText = document.getElementById('quiz-question-text');
+        quizOptionsContainer = document.getElementById('quiz-options-container');
+        quizEssayContainer = document.getElementById('quiz-essay-container');
+        quizEssayInput = document.getElementById('quiz-essay-input');
+        quizEssaySubmit = document.getElementById('quiz-essay-submit');
+        quizFeedback = document.getElementById('quiz-feedback');
+        quizNextButton = document.getElementById('quiz-next-button');
+        
+        var textInput = document.getElementById('text-input');
+        var startButton = document.getElementById('start-button');
+        var fileUpload = document.getElementById('file-upload');
+        var instructionsButton = document.getElementById('instructions-button');
+
+        // Handlers de botões estáticos
+        quizEssaySubmit.onclick = handleEssaySubmit;
+        quizNextButton.onclick = askQuestion;
+        startButton.onclick = function () {
+            startReadingMode(textInput.value, false);
+        };
+        fileUpload.addEventListener('change', handleFileUpload);
+        instructionsButton.onclick = function() {
+            // Placeholder - Ação de instruções virá aqui
+            console.log("Botão de Instruções clicado.");
+        };
+
+        // Inicia
+        if (!loadState()) {
+            if (navigator.clipboard && navigator.clipboard.readText) {
+                navigator.clipboard.readText()
+                    .then(clipText => {
+                        if (clipText.length > 0 && textInput.value.length === 0) {
+                            textInput.value = clipText;
+                        }
+                    })
+                    .catch(err => { /* Ignora */ });
+            }
+        }
+    });
+
+    </script>
+</body>
+</html>
