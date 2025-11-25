@@ -928,7 +928,7 @@
         if (!lexiconList) return;
         lexiconList.innerHTML = '';
         if (fullLexicon.length === 0) {
-            lexiconList.innerHTML = '<p style="font-style: italic; color: #9CA3AF;">Léxico será gerado aqui...</p>';
+            lexiconList.innerHTML = '<p style="font-style: italic; color: #9CA3AF;">Glossário será gerado aqui...</p>';
             return;
         }
         fullLexicon.forEach(item => {
@@ -1040,7 +1040,7 @@
         lexiconBox.id = 'lexicon-box';
 
         var lexiconTitle = document.createElement('h3');
-        lexiconTitle.innerText = 'Léxico';
+        lexiconTitle.innerText = 'Glossário';
 
         lexiconList = document.createElement('div');
         lexiconList.id = 'lexicon-list';
