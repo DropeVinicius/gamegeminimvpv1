@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GAME RSVP</title>
+    <title>Leitura Rápida com Quizz</title>
     <!-- Carrega Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Carrega fonte cursiva para a Nota -->
@@ -410,7 +410,7 @@
     <!-- ==== TELA DE ENTRADA (PRÉ-LEITURA) - Usa Tailwind ==== -->
     <div id="input-screen" class="max-w-2xl mx-auto">
         <header class="text-center mb-6">
-            <h1 class="text-3xl font-bold text-green-400 mb-2">GAME RSVP</h1>
+            <h1 class="text-3xl font-bold text-green-400 mb-2">Leitura Rápida com Quizz</h1>
             <p class="text-lg text-gray-400">Cole seu texto, leia rápido e teste seu conhecimento.</p>
         </header>
 
@@ -506,7 +506,7 @@
     var contextCount = 10;
     var version = "K21.2-Gemini"; // (MODIFICADO) v21.2 Hotfix Z-Index
     var signature = "2025.jrd.gem";
-    var title = "GAME RSVP";
+    var title = "Leitura Rápida com Quizz";
     var words = [];
 
     // --- Variáveis de UI (Serão definidas em initReadingUI) ---
@@ -889,7 +889,7 @@
             return;
         }
 
-        let txtContent = `GAME RSVP - Resumo da Sessão (${new Date().toLocaleString('pt-BR')})\n`;
+        let txtContent = `Leitura Rápida com Quizz - Resumo da Sessão (${new Date().toLocaleString('pt-BR')})\n`;
         txtContent += `=========================================================\n\n`;
         txtContent += `Nota Média Final: ${currentNota.toFixed(1)}\n`;
         txtContent += `Pontuação Total (Acertos): ${pontuacaoTotal.toFixed(2)}\n\n`;
